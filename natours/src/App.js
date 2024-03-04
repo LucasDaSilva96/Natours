@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { fetchTestApi } from './api/fetch';
+import { fetchTestApi, fetchUsers } from './api/fetch';
 
 function App() {
   useEffect(() => {
     async function x() {
       await fetchTestApi();
+      await fetchUsers();
     }
     x();
   }, []);
