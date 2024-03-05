@@ -8,7 +8,9 @@ const userRouter = require('./routes/userRoutes');
 app.use(cors());
 
 // !! Morgan Middleware
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
 // !! Express Middleware
 app.use(express.json());
@@ -24,6 +26,9 @@ app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
 });
+
+// !! Server-side rendering (Static HTML - files) Example
+//? app.use(express.static(`${__dirname}/folderName`))
 
 // * This is for the API-endpoint (fetch-url)
 // app.get('/api/v1/tours', getAllTours);

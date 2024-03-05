@@ -5,6 +5,29 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 );
 
+// *? Helper function | Tours - Middleware
+// request, response, next, value(id↓)
+exports.checkID = (req, res, next, val) => {
+  if (Number(val) > tours.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID',
+    });
+  }
+  next();
+};
+
+// *? Helper function | Tours - Middleware
+exports.checkBody = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Missing name or price',
+    });
+  }
+  next();
+};
+
 // *? Helper function | Tours
 exports.getAllTours = (req, res) => {
   res.status(200).json({
@@ -29,12 +52,6 @@ exports.getSpecificTour = (req, res) => {
         tour,
       },
     });
-  } else {
-    res.status(404).json({
-      status: 'Fail',
-      results: 0,
-      data: {},
-    });
   }
 };
 
@@ -47,13 +64,18 @@ exports.createNewTour = (req, res) => {
   tours.push(newTour);
 
   fs.writeFile(
-    `${__dirname}../dev-data/data/tours-simple.json`,
+    `${__dirname}/../dev-data/data/tours-simple.json`,
     JSON.stringify(tours),
     (err) => {
+      if (err)
+        return res.status(401).json({
+          status: 'fail',
+          message: 'Failed to write file',
+        });
       res.status(201).json({
         status: 'success',
         data: {
-          tours: newTour,
+          tours,
         },
       });
     }
@@ -68,21 +90,17 @@ exports.updateTour = (req, res) => {
   if (indexOfTour >= 0) {
     tours[indexOfTour] = { ...tours[indexOfTour], ...req.body };
 
-    fs.writeFile(
-      `${__dirname}../dev-data/data/tours-simple.json`,
-      JSON.stringify(tours),
-      (err) => {
-        res.status(201).json({
-          status: 'success',
-          data: {
-            tours,
-          },
-        });
-      }
-    );
+    fs.writeFile(``, JSON.stringify(tours), (err) => {
+      res.status(201).json({
+        status: 'success',
+        data: {
+          tours,
+        },
+      });
+    });
   } else {
     res.status(404).json({
-      status: 'Fail',
+      status: 'fail',
       data: {},
     });
   }
@@ -94,7 +112,7 @@ exports.deleteTour = (req, res) => {
   const updatedTours = tours.filter((el) => el.id !== Number(id));
 
   fs.writeFile(
-    `${__dirname}/../backEnd/dev-data/data/tours-simple.json`,
+    `${__dirname}./dev-data/data/tours-simple.json`,
     JSON.stringify(updatedTours),
     (err) => {
       res.status(204).json({
