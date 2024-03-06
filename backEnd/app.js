@@ -4,6 +4,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+
 // * This is for the CORS-policy of the web
 app.use(cors());
 

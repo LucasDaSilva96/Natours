@@ -1,6 +1,20 @@
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: './config.env' });
+dotenv.config({ path: './.env' });
+
+// ** DATABASE
+const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.PASSWORD);
+
+// ? Connect Atlas to mongoose
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('DB connection successful'));
 
 const app = require('./app');
 

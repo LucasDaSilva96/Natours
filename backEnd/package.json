@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "SET NODE_ENV=development & nodemon server.js",
+    "start": "SET NODE_ENV=development & nodemon server.js",
     "start:prod": "SET NODE_ENV=production & nodemon server.js"
   },
   "author": "Lucas Da Silva",
@@ -14,6 +14,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
+    "mongoose": "^5.13.22",
     "morgan": "^1.10.0",
     "nodemon": "^3.1.0"
   }

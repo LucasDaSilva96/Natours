@@ -1,50 +1,51 @@
-const fs = require('fs');
+const Tour = require('./../models/tourModel');
 
 // * Read the sample-file | Tours
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
-);
+// const tours = JSON.parse(
+//   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
+// );
 
 // *? Helper function | Tours - Middleware
 // request, response, next, value(id↓)
-exports.checkID = (req, res, next, val) => {
-  if (Number(val) > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-  next();
-};
 
 // *? Helper function | Tours - Middleware
-exports.checkBody = (req, res, next) => {
-  if (!req.body.name || !req.body.price) {
-    return res.status(400).json({
+// exports.checkBody = (req, res, next) => {
+//   if (!req.body.name || !req.body.price) {
+//     return res.status(400).json({
+//       status: 'fail',
+//       message: 'Missing name or price',
+//     });
+//   }
+//   next();
+// };
+
+// *? Helper function | Tours
+exports.getAllTours = async (req, res) => {
+  try {
+    const tours = await Tour.find();
+
+    res.status(200).json({
+      status: 'success',
+      results: tours.length,
+      data: {
+        tours,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
       status: 'fail',
-      message: 'Missing name or price',
+      message: `ERROR: ${err.message}`,
     });
   }
-  next();
 };
 
 // *? Helper function | Tours
-exports.getAllTours = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    requestedAt: req.requestTime,
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-};
-
-// *? Helper function | Tours
-exports.getSpecificTour = (req, res) => {
+exports.getSpecificTour = async (req, res) => {
   const { id } = req.params;
-  const tour = tours.find((el) => el.id === Number(id));
-  if (tour) {
+
+  try {
+    const tour = await Tour.findById(id);
+
     res.status(200).json({
       status: 'success',
       results: 1,
@@ -52,73 +53,71 @@ exports.getSpecificTour = (req, res) => {
         tour,
       },
     });
-  }
-};
-
-// *? Helper function | Tours
-exports.createNewTour = (req, res) => {
-  const newID = tours[tours.length - 1].id + 1;
-
-  const newTour = Object.assign({ id: newID }, req.body);
-
-  tours.push(newTour);
-
-  fs.writeFile(
-    `${__dirname}/../dev-data/data/tours-simple.json`,
-    JSON.stringify(tours),
-    (err) => {
-      if (err)
-        return res.status(401).json({
-          status: 'fail',
-          message: 'Failed to write file',
-        });
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tours,
-        },
-      });
-    }
-  );
-};
-
-// *? Helper function | Tours
-exports.updateTour = (req, res) => {
-  const { id } = req.params;
-  const indexOfTour = tours.findIndex((el) => el.id === Number(id));
-
-  if (indexOfTour >= 0) {
-    tours[indexOfTour] = { ...tours[indexOfTour], ...req.body };
-
-    fs.writeFile(``, JSON.stringify(tours), (err) => {
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tours,
-        },
-      });
-    });
-  } else {
-    res.status(404).json({
+  } catch (err) {
+    res.status(400).json({
       status: 'fail',
-      data: {},
+      message: `ERROR: ${err.message}`,
     });
   }
 };
 
 // *? Helper function | Tours
-exports.deleteTour = (req, res) => {
-  const { id } = req.params;
-  const updatedTours = tours.filter((el) => el.id !== Number(id));
+exports.createNewTour = async (req, res) => {
+  try {
+    const newTour = await Tour.create(req.body);
 
-  fs.writeFile(
-    `${__dirname}./dev-data/data/tours-simple.json`,
-    JSON.stringify(updatedTours),
-    (err) => {
-      res.status(204).json({
-        status: 'success',
-        data: null,
-      });
-    }
-  );
+    res.status(201).json({
+      status: 'success',
+      data: {
+        newTour,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: `ERROR: ${err.message}`,
+    });
+  }
+};
+
+// *? Helper function | Tours
+exports.updateTour = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const updatedTour = await Tour.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour: updatedTour,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: `ERROR: ${err.message}`,
+    });
+  }
+};
+
+// *? Helper function | Tours
+exports.deleteTour = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await Tour.findByIdAndDelete(id);
+
+    res.status(204).json({
+      status: 'success',
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'success',
+      message: `ERROR: ${err.message}`,
+    });
+  }
 };
