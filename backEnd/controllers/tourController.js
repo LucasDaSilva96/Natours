@@ -1,3 +1,4 @@
+const { query } = require('express');
 const Tour = require('./../models/tourModel');
 
 // * Read the sample-file | Tours
@@ -22,8 +23,47 @@ const Tour = require('./../models/tourModel');
 // *? Helper function | Tours
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    // ** Build query
+    const queryObj = { ...req.query };
 
+    // ** Exclude url-query that are unnecessary to the filter
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    // ** Advance filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+
+    // ** Filter method 1
+    // const tours = await Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
+
+    // ** Filter method 2
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // ** Sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    // ** Field limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    } else {
+      query = query.select('-__v');
+    }
+
+    // * Execute query
+    const tours = await query;
+
+    // * Send response
     res.status(200).json({
       status: 'success',
       results: tours.length,
