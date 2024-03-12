@@ -86,6 +86,12 @@ exports.getSpecificTour = async (req, res) => {
   }
 };
 
+const catchAsync = (fn) => {
+  return (req, res, next) => {
+    fn(req, res, next).catch(next);
+  };
+};
+
 // *? Helper function | Tours
 exports.createNewTour = async (req, res) => {
   try {

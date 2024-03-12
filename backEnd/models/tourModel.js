@@ -11,7 +11,7 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       maxLength: [40, 'A tour name must have less or equal 40 characters'],
       minLength: [10, 'A tour name must have more or equal to 10 characters'],
-      validate: [validator.isAlpha, 'A tour name can only contain characters'],
+      // validate: [validator.isAlpha, 'A tour name can only contain characters'],
     },
     slug: String,
     duration: {
@@ -104,7 +104,6 @@ tourSchema.pre(/^find/, function (next) {
 });
 
 tourSchema.post(/^find/, function (docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds`);
   // console.log(docs);
   next();
 });
