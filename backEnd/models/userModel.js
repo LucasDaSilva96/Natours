@@ -23,10 +23,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Enter a valid password'],
     minLength: [8, 'A password must have more or equal to 10 characters'],
+    select: false,
   },
   passwordConfirm: {
     type: String,
     required: [true, 'The passwords must match each other'],
+    select: false,
     validate: {
       //! This only works on CREATE & SAVE!!
       validator: function (el) {
@@ -35,6 +37,7 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same',
     },
   },
+  passwordChangedAt: Date,
 });
 
 // ** Encrypt/hash password
@@ -50,6 +53,29 @@ userSchema.pre('save', async function (next) {
   // Call the next middleware
   next();
 });
+
+// ** Check if passwords match
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+// ** Check if the user has changed password after getting the token
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimeStamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    // Check if user changed password after the token was issued
+    return JWTTimestamp < changedTimeStamp;
+  }
+
+  return false;
+};
 
 const User = mongoose.model('User', userSchema);
 

@@ -1,19 +1,30 @@
 const fs = require('fs');
+const User = require('./../models/userModel');
+const APIFeatures = require('../utils/apiFeatures');
 
 // * Read the sample-file | Users
-const users = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/users.json`)
-);
+// const users = JSON.parse(
+//   fs.readFileSync(`${__dirname}/../dev-data/data/users.json`)
+// );
 
 // *? Helper function | Users
-exports.getAllUsers = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+
+    res.status(200).json({
+      status: 'success',
+      results: users.length,
+      data: {
+        users,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: `ERROR: ${err.message}`,
+    });
+  }
 };
 
 // *? Helper function | Users
