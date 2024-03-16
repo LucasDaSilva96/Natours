@@ -70,6 +70,7 @@ exports.getSpecificTour = async (req, res) => {
 
   try {
     const tour = await Tour.findById(id);
+    if (!tour) throw new Error('The tour was not found');
 
     res.status(200).json({
       status: 'success',
@@ -86,11 +87,11 @@ exports.getSpecificTour = async (req, res) => {
   }
 };
 
-const catchAsync = (fn) => {
-  return (req, res, next) => {
-    fn(req, res, next).catch(next);
-  };
-};
+// const catchAsync = (fn) => {
+//   return (req, res, next) => {
+//     fn(req, res, next).catch(next);
+//   };
+// };
 
 // *? Helper function | Tours
 exports.createNewTour = async (req, res) => {
@@ -137,17 +138,19 @@ exports.updateTour = async (req, res) => {
 
 // *? Helper function | Tours
 exports.deleteTour = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    await Tour.findByIdAndDelete(id);
+    const { id } = req.params;
+    await Tour.findByIdAndDelete(id, (err, doc) => {
+      if (err) throw new Error(err);
+      console.log('Deleted');
+    });
 
     res.status(204).json({
       status: 'success',
     });
   } catch (err) {
     res.status(400).json({
-      status: 'success',
+      status: 'fail',
       message: `ERROR: ${err.message}`,
     });
   }

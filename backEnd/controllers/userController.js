@@ -1,6 +1,5 @@
 const fs = require('fs');
 const User = require('./../models/userModel');
-const APIFeatures = require('../utils/apiFeatures');
 
 // * Read the sample-file | Users
 // const users = JSON.parse(
@@ -28,39 +27,45 @@ exports.getAllUsers = async (req, res) => {
 };
 
 // *? Helper function | Users
-exports.getUser = (req, res) => {
-  const { id } = req.params;
+exports.getUser = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  const user = users.find((el) => el._id === id);
+    const user = await User.findById(id);
 
-  res.status(200).json({
-    status: 'success',
-    results: 1,
-    data: {
-      user,
-    },
-  });
+    if (!user) throw new Error('The user was not found');
+
+    res.status(200).json({
+      status: 'success',
+      results: 1,
+      data: {
+        user,
+      },
+    });
+  } catch (err) {
+    res.status(401).json({
+      status: 'fail',
+      message: `ERROR: ${err.message}`,
+    });
+  }
 };
 
 // *? Helper function | Users
-exports.createUser = (req, res) => {
-  // TODO check if the user already exist
-  const newID = String(users.length + 1);
+// exports.createUser = async (req, res) => {
+//   try {
+//     console.log(req.body);
+//     await User.create(req.body);
 
-  const newUser = Object.assign({ _id: newID }, req.body);
-  users.push(newUser);
-
-  fs.writeFile(
-    `${__dirname}../dev-data/data/users.json`,
-    JSON.stringify(users),
-    (err) => {
-      res.status(201).json({
-        status: 'success',
-        data: undefined,
-      });
-    }
-  );
-};
+//     res.status(201).json({
+//       status: 'success',
+//     });
+//   } catch (err) {
+//     res.status(401).json({
+//       status: 'fail',
+//       message: `ERROR: ${err.message}`,
+//     });
+//   }
+// };
 
 // *? Helper function | Users
 exports.updateUser = (req, res) => {
