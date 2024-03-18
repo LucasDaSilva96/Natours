@@ -1,5 +1,6 @@
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const dotenv = require('dotenv');
 const sendEmail = require('../utils/email');
 
@@ -211,4 +212,68 @@ exports.forgotPassword = async (req, res, next) => {
     next();
   }
 };
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = async (req, res, next) => {
+  try {
+    // 1) Get the user based on the token
+    const hashToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      passwordResetToken: hashToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) throw new Error('Token is invalid or has expired');
+    // 2) If token has not expired, and there is user, set the new password
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+    // 3) Update changedPasswordAt property for the user
+    // 4) Log the user in, Send JWT
+    const token = signToken(user._id);
+    res.status(200).json({
+      status: 'success',
+      token,
+    });
+  } catch (err) {
+    res.status(401).json({
+      status: 'fail',
+      message: `ERROR: ${err.message}`,
+    });
+  }
+};
+
+exports.updatePassword = async (req, res, next) => {
+  try {
+    // 1) Get the user from the collection
+    const user = await User.findById(req.user.id).select('+password');
+    if (!user)
+      throw new Error(`No user found. Check credentials and try again.`);
+
+    // 2) Check if posted current password is correct
+    if (!(await user.correctPassword(req.body.passwordCurrent, user.password)))
+      throw new Error('Your current password is wrong');
+    // 3) If so, update password
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    await user.save();
+    // 4) Log the user in, send JWT
+    const token = signToken(user._id);
+
+    res.status(200).json({
+      status: 'success',
+      token,
+    });
+    next();
+  } catch (err) {
+    res.status(401).json({
+      status: 'fail',
+      message: `ERROR: ${err.message}`,
+    });
+    next();
+  }
+};

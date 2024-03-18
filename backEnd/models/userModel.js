@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
   passwordConfirm: {
     type: String,
     required: [true, 'The passwords must match each other'],
+    // use .select("+example") to select this field
     select: false,
     validate: {
       //! This only works on CREATE & SAVE!!
@@ -46,6 +47,12 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  // use .select("+example") to select this field
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 // ** Encrypt/hash password
@@ -59,6 +66,20 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
 
   // Call the next middleware
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  // This points to the current query
+  this.find({ active: true });
+  next();
+});
+
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000; // This is to make sure that the token is created before time-stamp
+
   next();
 });
 

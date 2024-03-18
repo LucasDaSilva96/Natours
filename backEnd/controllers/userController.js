@@ -6,6 +6,16 @@ const User = require('./../models/userModel');
 //   fs.readFileSync(`${__dirname}/../dev-data/data/users.json`)
 // );
 
+// *? Helper function | Filter req.body
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  Object.keys(obj).forEach((el) => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+
+  return newObj;
+};
+
 // *? Helper function | Users
 exports.getAllUsers = async (req, res) => {
   try {
@@ -68,39 +78,73 @@ exports.getUser = async (req, res) => {
 // };
 
 // *? Helper function | Users
-exports.updateUser = (req, res) => {
-  const { id } = req.params;
+// exports.updateUser = (req, res) => {
+//   const { id } = req.params;
 
-  const userIndex = users.findIndex((el) => el._id === id);
+//   const userIndex = users.findIndex((el) => el._id === id);
 
-  users[userIndex] = { ...users[userIndex], ...req.body };
+//   users[userIndex] = { ...users[userIndex], ...req.body };
 
-  fs.writeFile(
-    `${__dirname}../dev-data/data/users.json`,
-    JSON.stringify(users),
-    (err) => {
-      res.status(202).json({
-        status: 'success',
-        data: null,
-      });
-    }
-  );
-};
+//   fs.writeFile(
+//     `${__dirname}../dev-data/data/users.json`,
+//     JSON.stringify(users),
+//     (err) => {
+//       res.status(202).json({
+//         status: 'success',
+//         data: null,
+//       });
+//     }
+//   );
+// };
 
 // *? Helper function | Users
-exports.deleteUser = (req, res) => {
-  const { id } = req.params;
+exports.deleteUser = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { active: false });
 
-  const updatedUsers = users.filter((el) => el._id !== id);
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (err) {
+    res.status(401).json({
+      status: 'fail',
+      message: `ERROR: ${err.message}`,
+    });
+  }
+};
 
-  fs.writeFile(
-    `${__dirname}/dev-data/data/users.json`,
-    JSON.stringify(updatedUsers),
-    (err) => {
-      res.status(202).json({
-        status: 'success',
-        data: null,
-      });
-    }
-  );
+exports.updateMe = async (req, res, next) => {
+  try {
+    // 1) Create error if user POSTs password data
+    if (req.body.password || req.body.passwordConfirm)
+      throw new Error(
+        'This route is not for password updates. Please use /updateMyPassword route'
+      );
+
+    // 2) Filtered out unwanted fields names that are not allowed to be updated
+    const filteredBody = filterObj(req.body, 'name', 'email');
+
+    // 3) Update user document
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      filteredBody,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user: updatedUser,
+      },
+    });
+  } catch (err) {
+    res.status(401).json({
+      status: 'fail',
+      message: `ERROR: ${err.message}`,
+    });
+  }
 };

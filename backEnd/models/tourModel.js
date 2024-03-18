@@ -70,6 +70,7 @@ const tourSchema = new mongoose.Schema(
     createdAt: {
       type: Date,
       default: Date.now(),
+      // use .select("+example") to select this field
       select: false,
     },
     startDates: [Date],
