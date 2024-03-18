@@ -1,5 +1,10 @@
 const express = require('express');
 const app = express();
+const { rateLimit } = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 const cors = require('cors');
 const morgan = require('morgan');
 const tourRouter = require('./routes/tourRoutes');
@@ -10,13 +15,50 @@ const globalErrorHandler = require('./controllers/errorController');
 // * This is for the CORS-policy of the web
 app.use(cors());
 
+// !! Security HTTP Middleware
+app.use(helmet());
+
 // !! Morgan Middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// !! Express Middleware
-app.use(express.json());
+// !! Express Middleware (Body pase, reading data from body into req.body)
+app.use(
+  express.json({
+    limit: '10kb',
+  })
+);
+
+// !! Data Sanitization Middleware (NoSQL query injection)
+app.use(mongoSanitize());
+
+// !! Data Sanitization Middleware (XSS injection)
+app.use(xss());
+
+// !! Rate limit Middleware
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+  message: 'Too many request from this IP, please try again in 15 minutes',
+});
+
+app.use('/api', limiter);
+// !! Parameter Pollution Middleware
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  })
+);
 
 // !! Own middleware
 // app.use((req, res, next) => {

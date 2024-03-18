@@ -14,6 +14,33 @@ const signToken = (id) => {
   });
 };
 
+// ** Send token & status helper function
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+  // *? Define cookie
+  // Convert to milliseconds
+  const expiryDate = new Date(
+    Date.now() + Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000
+  );
+
+  res.cookie('jwt', token, {
+    expires: expiryDate,
+    secure: process.env.NODE_ENV === 'production' ? true : false,
+    httpOnly: true,
+  });
+
+  // Remove the password from the output
+  user.password = undefined;
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 exports.singUp = async (req, res, next) => {
   try {
     const newUser = await User.create({
@@ -26,15 +53,7 @@ exports.singUp = async (req, res, next) => {
       role: req.body.role || 'user',
     });
 
-    const token = signToken(newUser._id);
-
-    res.status(201).json({
-      status: 'success',
-      token,
-      data: {
-        user: newUser,
-      },
-    });
+    createSendToken(newUser, 201, res);
   } catch (err) {
     res.status(400).json({
       status: 'fail',
@@ -78,12 +97,8 @@ exports.login = async (req, res, next) => {
     }
 
     // 3) If everything is ok, send token to the client
-    const token = signToken(user._id);
 
-    res.status(200).json({
-      status: 'success',
-      token,
-    });
+    createSendToken(user, 200, res);
   } catch (err) {
     res.status(400).json({
       status: 'fail',
@@ -234,11 +249,7 @@ exports.resetPassword = async (req, res, next) => {
     await user.save();
     // 3) Update changedPasswordAt property for the user
     // 4) Log the user in, Send JWT
-    const token = signToken(user._id);
-    res.status(200).json({
-      status: 'success',
-      token,
-    });
+    createSendToken(user, 200, res);
   } catch (err) {
     res.status(401).json({
       status: 'fail',
@@ -262,12 +273,8 @@ exports.updatePassword = async (req, res, next) => {
     user.passwordConfirm = req.body.passwordConfirm;
     await user.save();
     // 4) Log the user in, send JWT
-    const token = signToken(user._id);
+    createSendToken(user, 200, res);
 
-    res.status(200).json({
-      status: 'success',
-      token,
-    });
     next();
   } catch (err) {
     res.status(401).json({
