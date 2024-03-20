@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./userModel');
 // ** TOUR - SCHEMA
 const tourSchema = new mongoose.Schema(
   {
@@ -78,6 +79,40 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    //** Embedding
+    // guides: Array,
+    // ** Reference
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        // Reference to another model, in this case the User-model
+        ref: 'User',
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -96,13 +131,33 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
-// ** QUERY Middleware
+// ** Embedding Middleware
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+
+//   next();
+// });
+
+// ** Populate Middleware (Everything that starts with find...findById, find and so on)
+tourSchema.pre(/^find/, function (next) {
+  // populate = replaces id with the actual data in the guides field
+  this.populate({
+    path: 'guides',
+    // Remove those field from the object when displaying
+    select: '-__v -passwordChangedAt',
+  });
+  next();
+});
+
+// ** QUERY Middleware (Everything that starts with find...findById, find and so on)
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
   next();
 });
 
+// **  (Everything that starts with find...findById, find and so on)
 tourSchema.post(/^find/, function (docs, next) {
   // console.log(docs);
   next();
