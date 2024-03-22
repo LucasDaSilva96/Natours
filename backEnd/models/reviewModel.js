@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Tour = require('./tourModel');
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -34,6 +35,9 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+// ** This is for making sure that the user only writes on review per tour (PREVENTING DUPLICATE)
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 // ** Populate Middleware
 reviewSchema.pre(/^find/, function (next) {
   // this.populate([
@@ -43,6 +47,56 @@ reviewSchema.pre(/^find/, function (next) {
   // next();
   this.populate({ path: 'user', select: 'name photo' });
   next();
+});
+
+// ** Calculating average rating on tours ↓
+reviewSchema.statics.calcAverageRatings = async function (tourId) {
+  const stats = await this.aggregate([
+    {
+      $match: { tour: tourId },
+    },
+    {
+      $group: {
+        _id: '$tour',
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+  }
+};
+
+// *? post = after save
+reviewSchema.post('save', function (next) {
+  // this points to current review
+  // Review.calcAverageRatings(this.tour);
+  this.constructor.calcAverageRatings(this.tour);
+
+  next();
+});
+
+// findByIdAndUpdate
+// findByIdAndDelete
+// *? pre = before save
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  this.r = await this.findOne();
+
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function (next) {
+  await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 
 // ** REVIEW - MODEL

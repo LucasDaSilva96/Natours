@@ -19,19 +19,19 @@ const router = express.Router({
 // POST /tour:id/reviews
 // GET /tour:id/reviews || GET /tour/:id/reviews/:id
 
+router.get('/', getAllReviews);
+
 // ** Protect all routes after this Middleware
 router.use(protect);
 
-router
-  .route('/')
-  .get(getAllReviews)
-  .post(resTrictTo('user'), setTourAndUserIds, createReview);
+router.post(resTrictTo('user'), setTourAndUserIds, createReview);
 
-router.get('/:id').get(getReview);
+router.get('/:id', getReview);
 
 // ** Protect all routes after this Middleware
 router.use(resTrictTo('user', 'admin'));
 
-router.delete(deleteReview).patch(updateReview);
+router.delete('/:id', deleteReview);
+router.patch('/:id', updateReview);
 
 module.exports = router;

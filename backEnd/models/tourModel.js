@@ -35,6 +35,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above or equal to 1.0'],
       max: [5, 'Rating must be less or equal to 5'],
+      set: (val) => Math.round(val * 10) / 10,
     },
     ratingsQuantity: {
       type: Number,
@@ -120,6 +121,14 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// ** This is for better performance when looking through a huge DB (Indexes)
+// ** 1 = Ascending order || -1 = descending order
+// tourSchema.index({ price: 1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
+// ** Compound Indexes, also for better performance
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+
 // ** Virtual property
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
@@ -171,11 +180,11 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 
 // ** AGGREGATION Middleware
-tourSchema.pre('aggregate', function (next) {
-  this._pipeline.unshift({ $match: { secretTour: { $ne: true } } });
-  // console.log(this._pipeline);
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   this._pipeline.unshift({ $match: { secretTour: { $ne: true } } });
+//   // console.log(this._pipeline);
+//   next();
+// });
 
 // ** TOUR - MODEL
 const Tour = mongoose.model('Tour', tourSchema);

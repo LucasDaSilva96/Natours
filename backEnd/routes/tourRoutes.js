@@ -8,6 +8,8 @@ const {
   aliasTopTours,
   getTourStats,
   getMonthlyPLan,
+  getToursWithIn,
+  getDistances,
 } = require('../controllers/tourController');
 const { protect, resTrictTo } = require('../controllers/authController');
 // const { createReview } = require('../controllers/reviewController');
@@ -30,6 +32,12 @@ router.route('/tour-stats').get(getTourStats);
 router
   .route('/monthly-plan/:year')
   .get(protect, resTrictTo('admin', 'lead-guide', 'guide'), getMonthlyPLan);
+
+router
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(getToursWithIn);
+
+router.route('/distances/:latlng/unit/:unit').get(getDistances);
 
 router
   .route('/')
