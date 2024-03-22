@@ -1,5 +1,5 @@
-const fs = require('fs');
 const User = require('./../models/userModel');
+const { deleteOne, getOne, getAll, createOne } = require('./handlerFactory');
 
 // * Read the sample-file | Users
 // const users = JSON.parse(
@@ -16,49 +16,51 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-// *? Helper function | Users
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find();
+// *? Helper function | Fetch all users
+exports.getAllUsers = getAll(User);
+// exports.getAllUsers = async (req, res) => {
+//   try {
+//     const users = await User.find();
 
-    res.status(200).json({
-      status: 'success',
-      results: users.length,
-      data: {
-        users,
-      },
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: `ERROR: ${err.message}`,
-    });
-  }
-};
+//     res.status(200).json({
+//       status: 'success',
+//       results: users.length,
+//       data: {
+//         users,
+//       },
+//     });
+//   } catch (err) {
+//     res.status(400).json({
+//       status: 'fail',
+//       message: `ERROR: ${err.message}`,
+//     });
+//   }
+// };
 
-// *? Helper function | Users
-exports.getUser = async (req, res) => {
-  try {
-    const { id } = req.params;
+// *? Helper function | Fetch user
+exports.getUser = getOne(User);
+// exports.getUser = async (req, res) => {
+//   try {
+//     const { id } = req.params;
 
-    const user = await User.findById(id);
+//     const user = await User.findById(id);
 
-    if (!user) throw new Error('The user was not found');
+//     if (!user) throw new Error('The user was not found');
 
-    res.status(200).json({
-      status: 'success',
-      results: 1,
-      data: {
-        user,
-      },
-    });
-  } catch (err) {
-    res.status(401).json({
-      status: 'fail',
-      message: `ERROR: ${err.message}`,
-    });
-  }
-};
+//     res.status(200).json({
+//       status: 'success',
+//       results: 1,
+//       data: {
+//         user,
+//       },
+//     });
+//   } catch (err) {
+//     res.status(401).json({
+//       status: 'fail',
+//       message: `ERROR: ${err.message}`,
+//     });
+//   }
+// };
 
 // *? Helper function | Users
 // exports.createUser = async (req, res) => {
@@ -97,23 +99,24 @@ exports.getUser = async (req, res) => {
 //   );
 // };
 
-// *? Helper function | Users
-exports.deleteUser = async (req, res, next) => {
-  try {
-    await User.findByIdAndUpdate(req.user.id, { active: false });
+// *? Helper function | Delete user
+exports.deleteUser = deleteOne(User);
+// exports.deleteUser = async (req, res, next) => {
+//   try {
+//     await User.findByIdAndUpdate(req.user.id, { active: false });
 
-    res.status(204).json({
-      status: 'success',
-      data: null,
-    });
-  } catch (err) {
-    res.status(401).json({
-      status: 'fail',
-      message: `ERROR: ${err.message}`,
-    });
-  }
-};
-
+//     res.status(204).json({
+//       status: 'success',
+//       data: null,
+//     });
+//   } catch (err) {
+//     res.status(401).json({
+//       status: 'fail',
+//       message: `ERROR: ${err.message}`,
+//     });
+//   }
+// };
+// *? Helper function | Update user
 exports.updateMe = async (req, res, next) => {
   try {
     // 1) Create error if user POSTs password data
@@ -148,3 +151,5 @@ exports.updateMe = async (req, res, next) => {
     });
   }
 };
+
+exports.createUserByAdmin = createOne(User);
