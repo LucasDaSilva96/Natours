@@ -1,5 +1,4 @@
 const express = require('express');
-const app = express();
 const { rateLimit } = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
@@ -12,12 +11,27 @@ const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
+const path = require('path');
+const viewRouter = require('./routes/viewsRoutes');
+
+const cookieParser = require('cookie-parser');
+
+const app = express();
+
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+// !! Server-side rendering (Static HTML - files) Example
+app.use(express.static(`${__dirname}/public`));
 
 // * This is for the CORS-policy of the web
 app.use(cors());
 
 // !! Security HTTP Middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 // !! Morgan Middleware
 if (process.env.NODE_ENV === 'development') {
@@ -30,6 +44,10 @@ app.use(
     limit: '10kb',
   })
 );
+
+app.use(cookieParser());
+
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // !! Data Sanitization Middleware (NoSQL query injection)
 app.use(mongoSanitize());
@@ -62,20 +80,11 @@ app.use(
 );
 
 // !! Own middleware
-// app.use((req, res, next) => {
-//   console.log('Hello from the middleware🥸');
-//   next();
-// });
-
-// !! Own middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
 
   next();
 });
-
-// !! Server-side rendering (Static HTML - files) Example
-//? app.use(express.static(`${__dirname}/folderName`))
 
 // * This is for the API-endpoint (fetch-url)
 // app.get('/api/v1/tours', getAllTours);
@@ -93,6 +102,8 @@ app.use((req, res, next) => {
 // app.delete('/api/v1/tours/:id', deleteTour);
 
 // ? ROUTES ***
+app.use('/', viewRouter);
+
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
