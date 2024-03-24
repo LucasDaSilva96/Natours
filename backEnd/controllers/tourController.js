@@ -7,6 +7,60 @@ const {
   getAll,
 } = require('./handlerFactory');
 
+// ** Upload image ↓
+const multer = require('multer');
+const sharp = require('sharp'); // *! Use version 0.32.6
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, callbackFn) => {
+  if (file.mimetype.startsWith('image')) {
+    callbackFn(null, true);
+  } else {
+    callbackFn(new Error('Not an image, please upload an image'), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+
+exports.resizeTourImages = async (req, res, next) => {
+  if (!req.files.imageCover || !req.files.images) return next();
+
+  // 1) Cover image
+  // Use sharp package to resize the image if necessary in order to save space,
+  // then save the image toFile... with the quality of 90%
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`);
+
+  //  2) Images
+  req.body.images = [];
+  await Promise.all(
+    req.files.images.map(async (file, index) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${index + 1}.jpeg`;
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+
+      req.body.images.push(filename);
+    })
+  );
+
+  next();
+};
+
 // ** Middleware
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';

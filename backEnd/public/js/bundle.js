@@ -12048,7 +12048,8 @@ var login = exports.login = /*#__PURE__*/function () {
           _context.next = 3;
           return (0, _axios.default)({
             method: 'POST',
-            url: 'http://127.0.0.1:8000/api/v1/users/login',
+            url: 'http://localhost:8000/api/v1/users/login',
+            withCredentials: true,
             data: {
               email: email,
               password: password
@@ -12057,24 +12058,24 @@ var login = exports.login = /*#__PURE__*/function () {
         case 3:
           res = _context.sent;
           // Send  cookie
-          document.cookie = " jwt=".concat(res.data.token);
+          // document.cookie = ` jwt=${res.data.token}`;
           if (res.data.status === 'success') {
             (0, _alerts.showAlert)('success', 'Logged in successfully!');
             window.setTimeout(function () {
               location.assign('/');
             }, 1500);
           }
-          _context.next = 11;
+          _context.next = 10;
           break;
-        case 8:
-          _context.prev = 8;
+        case 7:
+          _context.prev = 7;
           _context.t0 = _context["catch"](0);
           (0, _alerts.showAlert)('error', _context.t0.response.data.message);
-        case 11:
+        case 10:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 8]]);
+    }, _callee, null, [[0, 7]]);
   }));
   return function login(_x, _x2) {
     return _ref.apply(this, arguments);
@@ -12090,7 +12091,7 @@ var logout = exports.logout = /*#__PURE__*/function () {
           _context2.next = 3;
           return (0, _axios.default)({
             method: 'GET',
-            url: 'http://127.0.0.1:8000/api/v1/users/logout'
+            url: 'http://localhost:8000/api/v1/users/logout'
           });
         case 3:
           res = _context2.sent;
@@ -12134,10 +12135,11 @@ var updateSettings = exports.updateSettings = /*#__PURE__*/function () {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          url = type === 'password' ? 'http://127.0.0.1:8000/api/v1/users/updateMyPassword' : 'http://127.0.0.1:8000/api/v1/users/updateMe';
+          url = type === 'password' ? 'http://localhost:8000/api/v1/users/updateMyPassword' : 'http://localhost:8000/api/v1/users/updateMe';
           _context.next = 4;
           return (0, _axios.default)({
             method: 'PATCH',
+            withCredentials: true,
             url: url,
             data: data
           });
@@ -12338,19 +12340,22 @@ if (loginForm) loginForm.addEventListener('submit', /*#__PURE__*/function () {
 if (logOutBtn) logOutBtn.addEventListener('click', _login.logout);
 if (userDataForm) userDataForm.addEventListener('submit', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(e) {
-    var name, email;
+    var name, email, photo, form;
     return _regeneratorRuntime().wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
           e.preventDefault();
           name = document.getElementById('name').value;
           email = document.getElementById('email').value;
-          _context2.next = 5;
-          return (0, _updateSettings.updateSettings)({
-            name: name,
-            email: email
-          }, 'data');
-        case 5:
+          photo = document.getElementById('photo').files[0];
+          form = new FormData();
+          form.append('name', name);
+          form.append('email', email);
+          form.append('photo', photo);
+          console.log(form);
+          _context2.next = 11;
+          return (0, _updateSettings.updateSettings)(form, 'data');
+        case 11:
         case "end":
           return _context2.stop();
       }
@@ -12417,7 +12422,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58134" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61422" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

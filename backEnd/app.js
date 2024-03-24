@@ -102,8 +102,10 @@ app.use((req, res, next) => {
 // app.delete('/api/v1/tours/:id', deleteTour);
 
 // ? ROUTES ***
+// View - route
 app.use('/', viewRouter);
 
+// API - routes
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);

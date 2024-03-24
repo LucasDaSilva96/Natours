@@ -10,6 +10,8 @@ const {
   getMonthlyPLan,
   getToursWithIn,
   getDistances,
+  uploadTourImages,
+  resizeTourImages,
 } = require('../controllers/tourController');
 const { protect, resTrictTo } = require('../controllers/authController');
 // const { createReview } = require('../controllers/reviewController');
@@ -46,7 +48,13 @@ router
 router
   .route('/:id')
   .get(getSpecificTour)
-  .patch(protect, resTrictTo('admin', 'lead-guide'), updateTour)
+  .patch(
+    protect,
+    resTrictTo('admin', 'lead-guide'),
+    uploadTourImages,
+    resizeTourImages,
+    updateTour
+  )
   .delete(protect, resTrictTo('admin', 'lead-guide'), deleteTour);
 
 // ** Nested route (Ex: 2)

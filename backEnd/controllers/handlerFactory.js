@@ -118,6 +118,7 @@ exports.getAll = (Model) => async (req, res) => {
 // ** Depending on which user is currently logged in (Middleware)
 exports.getMe = (req, res, next) => {
   req.params.id = req.user.id;
+  console.log('Get me');
 
   next();
 };

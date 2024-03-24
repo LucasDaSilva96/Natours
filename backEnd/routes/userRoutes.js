@@ -5,6 +5,8 @@ const {
   updateMe,
   getUser,
   createUserByAdmin,
+  uploadUserPhoto,
+  resizeUserPhot,
 } = require('../controllers/userController');
 const {
   singUp,
@@ -32,10 +34,10 @@ router.patch('/updateMyPassword', protect, updatePassword);
 
 router.get('/me', getMe, getUser);
 
+router.patch('/updateMe', uploadUserPhoto, resizeUserPhot, updateMe);
 // ** Protect all routes after this Middleware
 router.use(resTrictTo('admin'));
 
-router.patch('/updateMe', updateMe);
 router.delete('/:id', deleteUser);
 router.get('/:id', getUser);
 router.route('/').get(getAllUsers);
