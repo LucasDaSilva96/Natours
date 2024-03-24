@@ -13,6 +13,7 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const path = require('path');
 const viewRouter = require('./routes/viewsRoutes');
+const bookingRouter = require('./routes/bookingsRoute');
 
 const cookieParser = require('cookie-parser');
 
@@ -109,6 +110,7 @@ app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/booking', bookingRouter);
 
 // ** Route handler
 app.all('*', (req, res, next) => {
