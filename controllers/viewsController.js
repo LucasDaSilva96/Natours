@@ -5,7 +5,7 @@ const Booking = require('../models/bookingModel');
 exports.getOverview = async (req, res) => {
   try {
     const tours = await Tour.find();
-
+    console.log(tours);
     res.status(200).render('overview', {
       title: 'All Tours',
       tours,
