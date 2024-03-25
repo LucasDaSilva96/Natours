@@ -27,8 +27,10 @@ app.set('views', path.join(__dirname, 'views'));
 // !! Server-side rendering (Static HTML - files) Example
 app.use(express.static(`${__dirname}/public`));
 
-// * This is for the CORS-policy of the web
+// * This is for the CORS-policy of the web (Middleware)
 app.use(cors());
+
+app.options('*', cors());
 
 // !! Security HTTP Middleware
 app.use(
