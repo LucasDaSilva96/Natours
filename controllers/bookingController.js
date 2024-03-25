@@ -8,6 +8,7 @@ const {
   updateOne,
   deleteOne,
 } = require('../controllers/handlerFactory');
+const User = require('../models/userModel');
 
 exports.getCheckoutSession = async (req, res, next) => {
   try {
@@ -34,8 +35,9 @@ exports.getCheckoutSession = async (req, res, next) => {
         },
       ],
       mode: 'payment',
-      success_url: `http://localhost:8000/?tour=${tourID}&user=${req.user.id}&price=${tour.price}`,
-      cancel_url: `http://localhost:8000/tour/${tour.slug}`,
+      // success_url: `http://localhost:8000/?tour=${tourID}&user=${req.user.id}&price=${tour.price}`,
+      success_url: `${req.protocol}://${req.get('host')}/my-tours`,
+      cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
     });
     // 3) Create session as response
     res.status(200).json({
@@ -50,20 +52,53 @@ exports.getCheckoutSession = async (req, res, next) => {
   }
 };
 
-exports.createBookingCheckout = async (req, res, next) => {
+// exports.createBookingCheckout = async (req, res, next) => {
+//   try {
+//     // TODO this is only TEMPORARY, because it's UNSECURE: everyone can make booking without paying
+//     const { tour, user, price } = req.query;
+
+//     if (!tour && !user && !price) return next();
+
+//     await Booking.create({ tour, user, price });
+
+//     res.redirect(req.originalUrl.split('?')[0]);
+//   } catch (err) {
+//     res.status(400).json({
+//       status: 'fail',
+//       message: `ERROR: ${err.message}`,
+//     });
+//   }
+// };
+
+// ** This is for stripe
+
+const createBookingCheckout = async (session) => {
+  const tour = session.client_reference_id;
+  const user = (await User.findOne({ email: session.customer_email }))._id;
+  const price = session.line_items[0].unit_amount / 100;
+  await Booking.create({ tour, user, price });
+};
+
+// ** This is for stripe
+exports.webHookCheckout = async (req, res, next) => {
+  let event = undefined;
   try {
-    // TODO this is only TEMPORARY, because it's UNSECURE: everyone can make booking without paying
-    const { tour, user, price } = req.query;
+    const signature = req.headers['stripe-signature'];
 
-    if (!tour && !user && !price) return next();
-
-    await Booking.create({ tour, user, price });
-
-    res.redirect(req.originalUrl.split('?')[0]);
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
   } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: `ERROR: ${err.message}`,
+    return res.status(400).send(`Webhook error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    createBookingCheckout(event.data.object);
+
+    res.status(200).json({
+      received: true,
     });
   }
 };

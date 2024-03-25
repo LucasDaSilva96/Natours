@@ -15,6 +15,7 @@ const path = require('path');
 const viewRouter = require('./routes/viewsRoutes');
 const bookingRouter = require('./routes/bookingsRoute');
 const compression = require('compression');
+const { webHookCheckout } = require('./controllers/bookingController');
 
 const cookieParser = require('cookie-parser');
 
@@ -44,6 +45,13 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// ** Stripe - Webhook
+app.post(
+  'webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  webHookCheckout
+);
+
 // !! Express Middleware (Body pase, reading data from body into req.body)
 app.use(
   express.json({
@@ -71,6 +79,7 @@ const limiter = rateLimit({
 });
 
 app.use('/api', limiter);
+
 // !! Parameter Pollution Middleware
 app.use(
   hpp({
