@@ -1,4 +1,4 @@
-const User = require('./../models/userModel');
+const User = require('../models/userModel');
 const { deleteOne, getOne, getAll, createOne } = require('./handlerFactory');
 
 // ** Upload image ↓
