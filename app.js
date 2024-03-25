@@ -45,13 +45,12 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// ** Stripe - Webhook
+// ** Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
 app.post(
-  'webhook-checkout',
+  '/webhook-checkout',
   express.raw({ type: 'application/json' }),
   webHookCheckout
 );
-
 // !! Express Middleware (Body pase, reading data from body into req.body)
 app.use(
   express.json({
