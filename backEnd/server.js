@@ -26,7 +26,7 @@ mongoose
 const app = require('./app');
 
 // * The port for dev-sever
-const port = Number(process.env.PORT) || 8000;
+const port = process.env.PORT || 8000;
 
 // * The server
 const server = app.listen(port, () => {
