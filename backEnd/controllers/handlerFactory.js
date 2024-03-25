@@ -7,7 +7,6 @@ exports.deleteOne = (Model) => async (req, res, next) => {
     const { id } = req.params;
     const doc = await Model.findByIdAndDelete(id, (err, doc) => {
       if (err) throw new Error(err);
-      console.log('Deleted');
     });
 
     if (!doc) throw new Error('The document was not found');
@@ -118,7 +117,6 @@ exports.getAll = (Model) => async (req, res) => {
 // ** Depending on which user is currently logged in (Middleware)
 exports.getMe = (req, res, next) => {
   req.params.id = req.user.id;
-  console.log('Get me');
 
   next();
 };

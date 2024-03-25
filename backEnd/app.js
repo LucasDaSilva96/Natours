@@ -14,6 +14,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const path = require('path');
 const viewRouter = require('./routes/viewsRoutes');
 const bookingRouter = require('./routes/bookingsRoute');
+const compression = require('compression');
 
 const cookieParser = require('cookie-parser');
 
@@ -79,6 +80,8 @@ app.use(
     ],
   })
 );
+
+app.use(compression());
 
 // !! Own middleware
 app.use((req, res, next) => {

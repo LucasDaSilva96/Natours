@@ -173,12 +173,6 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
-// **  (Everything that starts with find...findById, find and so on)
-tourSchema.post(/^find/, function (docs, next) {
-  // console.log(docs);
-  next();
-});
-
 // ** AGGREGATION Middleware
 // tourSchema.pre('aggregate', function (next) {
 //   this._pipeline.unshift({ $match: { secretTour: { $ne: true } } });
