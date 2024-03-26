@@ -2,6 +2,10 @@
 
 ### This is a Node.js application built using Express.js, MongoDB, Mongoose, and Stripe for handling tour bookings. Users can browse available tours, make bookings, and complete payments securely using Stripe's checkout process.
 
+<img src="/img/Natours-preview-1.png" alt="Preview image" title="Image 1">
+<img src="/img/Natours-preview-2.png" alt="Preview image" title="Image 2">
+<img src="/img/Natours-preview-3.png" alt="Preview image" title="Image 3">
+
 ### Browse available tours with detailed descriptions and images.
 
 Securely book tours using Stripe for payment processing.
