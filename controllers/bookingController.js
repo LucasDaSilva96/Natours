@@ -13,7 +13,7 @@ const User = require('../models/userModel');
 exports.getCheckoutSession = async (req, res, next) => {
   try {
     const { tourID } = req.params;
-    if (!tourID) throw new Error('TourID is undefined');
+    // if (!tourID) throw new Error('TourID is undefined');
     // 1) Get the currently booked tour
     const tour = await Tour.findById(tourID);
     // 2) Create checkout session
