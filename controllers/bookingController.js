@@ -76,10 +76,14 @@ exports.getCheckoutSession = async (req, res, next) => {
 // ** This is for stripe
 
 const createBookingCheckout = async (session) => {
-  const tour = (await Tour.findById(session.client_reference_id)).id;
-  const user = (await User.findOne({ email: session.customer_email })).id;
-  const price = session.amount_total / 100;
-  await Booking.create({ tour, user, price });
+  try {
+    const tour = await Tour.findById(session.client_reference_id);
+    const user = await User.findOne({ email: session.customer_email });
+    const price = session.amount_total / 100;
+    await Booking.create({ tour, user, price });
+  } catch (err) {
+    throw new Error(err.message);
+  }
 };
 
 // ** This is for stripe
