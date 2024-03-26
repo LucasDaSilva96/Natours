@@ -13,6 +13,7 @@ const User = require('../models/userModel');
 exports.getCheckoutSession = async (req, res, next) => {
   try {
     const { tourID } = req.params;
+    if (!tourID) throw new Error('TourID is undefined');
     // 1) Get the currently booked tour
     const tour = await Tour.findById(tourID);
     // 2) Create checkout session
@@ -22,6 +23,9 @@ exports.getCheckoutSession = async (req, res, next) => {
       cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
       customer_email: req.user.email,
       client_reference_id: req.params.tourId,
+      metaData: {
+        tourID,
+      },
       mode: 'payment',
       line_items: [
         {
