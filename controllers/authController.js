@@ -49,7 +49,6 @@ exports.singUp = async (req, res, next) => {
   try {
     // TODO ↓
     const url = `${req.protocol}://${req.get('host')}/me`;
-
     const newUser = await User.create({
       name: req.body.name,
       email: req.body.email,
