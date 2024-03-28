@@ -48,8 +48,7 @@ const createSendToken = (user, statusCode, req, res) => {
 exports.singUp = async (req, res, next) => {
   try {
     // TODO ↓
-    // const url = `${req.protocol}://${req.get('host')}/me`;
-    const url = 'http://localhost:8000/me';
+    const url = `${req.protocol}://${req.get('host')}/me`;
 
     const newUser = await User.create({
       name: req.body.name,
